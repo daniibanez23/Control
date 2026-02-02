@@ -101,3 +101,55 @@ document.getElementById("verListados").addEventListener("click", function() {
         cuerpoPresencias.innerHTML = "<tr><td colspan='4'>No hay registros de presencia</td></tr>";
     }
 });
+document.getElementById("verListados").addEventListener("click", function () {
+    const panel = document.getElementById("panelListados");
+    const listaTrabajadores = document.getElementById("listaTrabajadores");
+    const listaPresencias = document.getElementById("listaPresencias");
+
+    const trabajadores = JSON.parse(localStorage.getItem("trabajadores")) || [];
+    const presencias = JSON.parse(localStorage.getItem("presencias")) || [];
+
+    // Alternar visibilidad
+    panel.classList.toggle("oculto");
+
+    // Limpiar listas
+    listaTrabajadores.innerHTML = "";
+    listaPresencias.innerHTML = "";
+
+    // Cambiar texto del botón
+    this.textContent = panel.classList.contains("oculto")
+        ? "Mostrar Trabajadores y Registros"
+        : "Ocultar Listados";
+
+    // Mostrar trabajadores
+    if (trabajadores.length === 0) {
+        listaTrabajadores.innerHTML = "<li>No hay trabajadores registrados</li>";
+    } else {
+        trabajadores.forEach(t => {
+            const item = document.createElement("li");
+            item.innerHTML = `
+                <strong>DNI:</strong> ${t.dni} |
+                <strong>Nombre:</strong> ${t.nombre} |
+                <strong>Teléfono:</strong> ${t.telefono} |
+                <strong>Correo:</strong> ${t.correo}
+            `;
+            listaTrabajadores.appendChild(item);
+        });
+    }
+
+    // Mostrar presencias
+    if (presencias.length === 0) {
+        listaPresencias.innerHTML = "<li>No hay registros de presencia</li>";
+    } else {
+        presencias.forEach(p => {
+            const item = document.createElement("li");
+            item.innerHTML = `
+                <strong>DNI:</strong> ${p.dni} |
+                <strong>Nombre:</strong> ${p.nombre} |
+                <strong>Fecha:</strong> ${p.fecha} |
+                <strong>Hora:</strong> ${p.hora}
+            `;
+            listaPresencias.appendChild(item);
+        });
+    }
+});
