@@ -57,3 +57,47 @@ document.getElementById("formPresencia").addEventListener("submit", function(e) 
     alert("Presencia registrada correctamente");
     this.reset();
 });
+document.getElementById("verListados").addEventListener("click", function() {
+    const trabajadores = JSON.parse(localStorage.getItem("trabajadores")) || [];
+    const presencias = JSON.parse(localStorage.getItem("presencias")) || [];
+
+    const cuerpoTrabajadores = document.querySelector("#tablaTrabajadores tbody");
+    const cuerpoPresencias = document.querySelector("#tablaPresencias tbody");
+
+    cuerpoTrabajadores.innerHTML = "";
+    cuerpoPresencias.innerHTML = "";
+
+    // Mostrar trabajadores
+    trabajadores.forEach(t => {
+        const fila = `
+            <tr>
+                <td>${t.dni}</td>
+                <td>${t.nombre}</td>
+                <td>${t.telefono}</td>
+                <td>${t.correo}</td>
+            </tr>
+        `;
+        cuerpoTrabajadores.innerHTML += fila;
+    });
+
+    // Mostrar presencias
+    presencias.forEach(p => {
+        const fila = `
+            <tr>
+                <td>${p.dni}</td>
+                <td>${p.nombre}</td>
+                <td>${p.fecha}</td>
+                <td>${p.hora}</td>
+            </tr>
+        `;
+        cuerpoPresencias.innerHTML += fila;
+    });
+
+    if (trabajadores.length === 0) {
+        cuerpoTrabajadores.innerHTML = "<tr><td colspan='4'>No hay trabajadores registrados</td></tr>";
+    }
+
+    if (presencias.length === 0) {
+        cuerpoPresencias.innerHTML = "<tr><td colspan='4'>No hay registros de presencia</td></tr>";
+    }
+});
