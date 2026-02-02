@@ -56,3 +56,27 @@ th {
     background-color: #007bff;
     color: white;
 }
+.oculto {
+    display: none;
+}
+
+#panelListados {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background: white;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    font-size: 14px;
+}
