@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Presencia</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  text-align: center;
+  background: #f4f6f8;
+}
+
+h1 { margin-top: 20px; }
+
+.buttons { margin: 20px; }
+
+button {
+  padding: 10px 20px;
+  margin: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 6px;
+}
+
+.verde { background:#2ecc71; color:white; }
+.azul { background:#3498db; color:white; }
+.amarillo { background:#f1c40f; color:black; }
+.morado { background:#9b59b6; color:white; }
+
+.formulario, .listado {
+  background: white;
+  padding: 20px;
+  margin: 20px auto;
+  width: 95%;
+  max-width: 700px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.oculto { display: none; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 14px;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.mensaje {
+  margin-top: 10px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Control de Presencia</h1>
+
+<div class="buttons">
+  <button id="btnAlta" class="verde" type="button">Alta Trabajador</button>
+  <button id="btnFichaje" class="azul" type="button">Registrar Presencia</button>
+  <button id="btnVerTrabajadores" class="amarillo" type="button">Ver Trabajadores</button>
+  <button id="btnVerFichajes" class="morado" type="button">Ver Registros</button>
+</div>
+
+<form id="formAlta" class="formulario oculto">
+  <h2>Alta de Trabajador</h2>
+  <input type="text" id="nombre" placeholder="Nombre" required>
+  <input type="text" id="dni" placeholder="DNI" required>
+  <input type="email" id="correo" placeholder="Correo">
+  <input type="tel" id="telefono" placeholder="Teléfono">
+  <button class="verde" type="submit">Guardar Trabajador</button>
+  <div id="msgAlta" class="mensaje"></div>
+</form>
+
+<form id="formFichaje" class="formulario oculto">
+  <h2>Registro de Presencia</h2>
+  <input type="text" id="dniFichaje" placeholder="DNI" required>
+  <input type="date" id="fecha" required>
+  <input type="time" id="hora" required>
+  <button class="azul" type="submit">Registrar Fichaje</button>
+  <div id="msgFichaje" class="mensaje"></div>
+</form>
+
+<div id="listadoTrabajadores" class="listado oculto">
+  <h2>Listado de Trabajadores</h2>
+  <table>
+    <thead>
+      <tr><th>Nombre</th><th>DNI</th><th>Correo</th><th>Teléfono</th></tr>
+    </thead>
+    <tbody id="tablaTrabajadores"></tbody>
+  </table>
+</div>
+
+<div id="listadoFichajes" class="listado oculto">
+  <h2>Registros de Presencia</h2>
+  <table>
+    <thead>
+      <tr><th>DNI</th><th>Fecha</th><th>Hora</th></tr>
+    </thead>
+    <tbody id="tablaFichajes"></tbody>
+  </table>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const btnAlta = document.getElementById("btnAlta");
+  const btnFichaje = document.getElementById("btnFichaje");
+  const btnVerTrabajadores = document.getElementById("btnVerTrabajadores");
+  const btnVerFichajes = document.getElementById("btnVerFichajes");
+
+  const formAlta = document.getElementById("formAlta");
+  const formFichaje = document.getElementById("formFichaje");
+  const listadoTrabajadores = document.getElementById("listadoTrabajadores");
+  const listadoFichajes = document.getElementById("listadoFichajes");
+
+  const tablaTrabajadores = document.getElementById("tablaTrabajadores");
+  const tablaFichajes = document.getElementById("tablaFichajes");
+
+  const msgAlta = document.getElementById("msgAlta");
+  const msgFichaje = document.getElementById("msgFichaje");
+
+  let db;
+
+  const request = indexedDB.open("ControlPresenciaDB", 1);
+
+  request.onupgradeneeded = e => {
+    db = e.target.result;
+    db.createObjectStore("trabajadores", { keyPath: "dni" });
+    db.createObjectStore("fichajes", { autoIncrement: true });
+  };
+
+  request.onsuccess = e => db = e.target.result;
+
+  function ocultarTodo() {
+    formAlta.classList.add("oculto");
+    formFichaje.classList.add("oculto");
+    listadoTrabajadores.classList.add("oculto");
+    listadoFichajes.classList.add("oculto");
+  }
+
+  btnAlta.onclick = () => { ocultarTodo(); formAlta.classList.remove("oculto"); };
+  btnFichaje.onclick = () => { ocultarTodo(); formFichaje.classList.remove("oculto"); };
+  btnVerTrabajadores.onclick = () => { ocultarTodo(); mostrarTrabajadores(); };
+  btnVerFichajes.onclick = () => { ocultarTodo(); mostrarFichajes(); };
+
+  formAlta.addEventListener("submit", e => {
+    e.preventDefault();
+    const trabajador = {
+      nombre: nombre.value.trim(),
+      dni: dni.value.trim(),
+      correo: correo.value.trim(),
+      telefono: telefono.value.trim()
+    };
+    db.transaction("trabajadores", "readwrite").objectStore("trabajadores").put(trabajador);
+    msgAlta.textContent = "Trabajador guardado";
+    msgAlta.style.color = "green";
+    formAlta.reset();
+  });
+
+  formFichaje.addEventListener("submit", e => {
+    e.preventDefault();
+    const dniValor = dniFichaje.value.trim();
+    const tx = db.transaction("trabajadores", "readonly").objectStore("trabajadores").get(dniValor);
+
+    tx.onsuccess = () => {
+      if (tx.result) {
+        db.transaction("fichajes", "readwrite").objectStore("fichajes")
+          .add({ dni: dniValor, fecha: fecha.value, hora: hora.value });
+        msgFichaje.textContent = "Fichaje registrado";
+        msgFichaje.style.color = "green";
+        formFichaje.reset();
+      } else {
+        msgFichaje.textContent = "DNI no encontrado";
+        msgFichaje.style.color = "red";
+      }
+    };
+  });
+
+  function mostrarTrabajadores() {
+    tablaTrabajadores.innerHTML = "";
+    const store = db.transaction("trabajadores", "readonly").objectStore("trabajadores");
+    store.openCursor().onsuccess = e => {
+      const cursor = e.target.result;
+      if (cursor) {
+        const t = cursor.value;
+        tablaTrabajadores.innerHTML += `<tr><td>${t.nombre}</td><td>${t.dni}</td><td>${t.correo}</td><td>${t.telefono}</td></tr>`;
+        cursor.continue();
+      }
+    };
+    listadoTrabajadores.classList.remove("oculto");
+  }
+
+  function mostrarFichajes() {
+    tablaFichajes.innerHTML = "";
+    const store = db.transaction("fichajes", "readonly").objectStore("fichajes");
+    store.openCursor().onsuccess = e => {
+      const cursor = e.target.result;
+      if (cursor) {
+        const f = cursor.value;
+        tablaFichajes.innerHTML += `<tr><td>${f.dni}</td><td>${f.fecha}</td><td>${f.hora}</td></tr>`;
+        cursor.continue();
+      }
+    };
+    listadoFichajes.classList.remove("oculto");
+  }
+
+});
+</script>
+
+</body>
+</html>
